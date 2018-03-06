@@ -1,5 +1,9 @@
 package com.fl.integration.sap.idoc.inbound;
 
+import com.fl.integration.sap.idoc.inbound.exec.ExecIDocHandler;
+import com.fl.integration.sap.idoc.listener.MessageListener;
+import com.fl.integration.sap.idoc.listener.MessageListenerContainer;
+import com.fl.integration.sap.idoc.listener.config.ContainerProperties;
 import com.sap.conn.idoc.jco.JCoIDoc;
 import com.sap.conn.idoc.jco.JCoIDocHandlerFactory;
 import com.sap.conn.idoc.jco.JCoIDocServer;
@@ -13,13 +17,14 @@ import com.sap.conn.jco.server.JCoServerStateChangedListener;
 import com.sap.conn.jco.server.JCoServerTIDHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 // TODO: Auto-generated Javadoc
 
 /**
  * The Class IDocServerExample.
  */
-public class IDocServerSource {
+public class IDocServerSource implements MessageListenerContainer {
 
 	/**
 	 * The Constant LOGGER.
@@ -31,6 +36,17 @@ public class IDocServerSource {
 	 */
 	private JCoIDocHandlerFactory jCoIDocHandlerFactory;
 	private JCoIDocServer server = null;
+
+	private ContainerProperties containerProperties;
+
+	public IDocServerSource(ContainerProperties containerProperties) {
+		Assert.notNull(containerProperties, "'containerProperties' cannot be null");
+		this.containerProperties = containerProperties;
+	}
+
+	public ContainerProperties getContainerProperties() {
+		return containerProperties;
+	}
 
 	public JCoIDocHandlerFactory getjCoIDocHandlerFactory() {
 		return jCoIDocHandlerFactory;
@@ -174,6 +190,7 @@ public class IDocServerSource {
 			}
 
 			server.setIDocHandlerFactory(getjCoIDocHandlerFactory());
+
 			server.setTIDHandler(new MyTidHandler());
 
 			MyThrowableListener listener = new MyThrowableListener();
@@ -199,5 +216,14 @@ public class IDocServerSource {
 			server.stop();
 			server = null;
 		}
+	}
+
+	@Override
+	public void setupMessageListener(Object messageListener) {
+
+		this.getContainerProperties().setMessageListener(messageListener);
+		ExecIDocHandler handler = (ExecIDocHandler) getjCoIDocHandlerFactory().getIDocHandler(null);
+
+		handler.setMessageListener((MessageListener) getContainerProperties().getMessageListener());
 	}
 }

@@ -32,6 +32,7 @@ public class ExecIDocHandler extends AbstractIdocHandler {
 		this.execIdocHandlers = execIdocHandlers;
 	}
 
+
 	/**
 	 * 注册观察者对象
 	 *
@@ -68,6 +69,7 @@ public class ExecIDocHandler extends AbstractIdocHandler {
 
 	@Override
 	public final boolean executeIdoc(IDocDocument doc) {
+		super.executeIdoc(doc);
 		if (logger.isDebugEnabled()) {
 			logger.debug("executeIdoc(IDocDocument) - start"); //$NON-NLS-1$
 		}

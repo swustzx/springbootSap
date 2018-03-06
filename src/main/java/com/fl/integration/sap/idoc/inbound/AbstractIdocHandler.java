@@ -6,6 +6,7 @@
  */
 package com.fl.integration.sap.idoc.inbound;
 
+import com.fl.integration.sap.idoc.listener.MessageListener;
 import com.sap.conn.idoc.IDocDocument;
 import com.sap.conn.idoc.IDocDocumentIterator;
 import com.sap.conn.idoc.IDocDocumentList;
@@ -32,9 +33,20 @@ public abstract class AbstractIdocHandler implements JCoIDocHandler {
 	 */
 	private static final Logger logger = Logger.getLogger(AbstractIdocHandler.class);
 
+	private MessageListener messageListener;
+
+	public MessageListener getMessageListener() {
+		return messageListener;
+	}
+
+	public void setMessageListener(MessageListener messageListener) {
+		this.messageListener = messageListener;
+	}
+
 	/**
 	 * The Constant LOGGER.
 	 */
+
 
 	public boolean executeIdoc(IDocDocument doc) {
 		if (logger.isDebugEnabled()) {
@@ -44,6 +56,7 @@ public abstract class AbstractIdocHandler implements JCoIDocHandler {
 		if (logger.isDebugEnabled()) {
 			logger.debug("executeIdoc(IDocDocument) - end"); //$NON-NLS-1$
 		}
+		messageListener.onMessage(doc);
 		return true;
 
 	}

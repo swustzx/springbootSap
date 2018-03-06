@@ -9,6 +9,10 @@
 		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 	<bean class="com.fl.integration.sap.idoc.inbound.IDocServerSource" id="iDocServerSource">
+		<constructor-arg>
+			<bean class="com.fl.integration.sap.idoc.listener.config.ContainerProperties">
+			</bean>
+		</constructor-arg>
 		<property name="jCoIDocHandlerFactory" ref="iDocHandlerFactory"></property>
 	</bean>
 	<sapidoc:message-driven-channel-adapter id="sapIdoc"
@@ -19,11 +23,11 @@
 	</bean>
 	<bean class="com.fl.integration.sap.idoc.inbound.exec.ExecIDocHandler" id="execIDocHandler">
 	</bean>
-	<!--<file:file-to-string-transformer input-channel="sapIdoc" output-channel="file"/>-->
-
-	<!--<file:outbound-channel-adapter charset="UTF-8"-->
-	<!--directory="/tmp/si"-->
-	<!--filename-generator-expression="'${fileInbound.file.name:SpringBlog}'"-->
-	<!--id="file"-->
-	<!--mode="APPEND"/>-->
+	<int:object-to-json-transformer id="obj2Json" input-channel="sapIdoc"
+		output-channel="file"></int:object-to-json-transformer>
+	<file:outbound-channel-adapter charset="UTF-8"
+		directory="/tmp/si"
+		filename-generator-expression="'${file.name:SpringBlog} '"
+		id="file"
+		mode="APPEND"/>
 </beans>
