@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:file="http://www.springframework.org/schema/integration/file"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:sapidoc="http://www.springframework.org/schema/integration/sap/idoc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/sap/idoc http://www.springframework.org/schema/integration/sap/idoc/spring-integration-sap-idoc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+	<bean class="com.fl.integration.sap.idoc.inbound.IDocServerSource" id="iDocServerSource">
+		<property name="jCoIDocHandlerFactory" ref="iDocHandlerFactory"></property>
+	</bean>
+	<sapidoc:message-driven-channel-adapter id="sapIdoc"
+		listener-container="iDocServerSource"></sapidoc:message-driven-channel-adapter>
+	<bean class="com.fl.integration.sap.idoc.inbound.IDocHandlerFactory" id="iDocHandlerFactory"
+		lazy-init="false" scope="prototype">
+		<property name="handler" ref="execIDocHandler"></property>
+	</bean>
+	<bean class="com.fl.integration.sap.idoc.inbound.exec.ExecIDocHandler" id="execIDocHandler">
+	</bean>
+	<!--<file:file-to-string-transformer input-channel="sapIdoc" output-channel="file"/>-->
+
+	<!--<file:outbound-channel-adapter charset="UTF-8"-->
+	<!--directory="/tmp/si"-->
+	<!--filename-generator-expression="'${fileInbound.file.name:SpringBlog}'"-->
+	<!--id="file"-->
+	<!--mode="APPEND"/>-->
+</beans>

@@ -3,28 +3,25 @@
 	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:zip="http://www.springframework.org/schema/integration/zip"
 	xmlns="http://www.springframework.org/schema/beans"
 	xsi:schemaLocation="http://www.springframework.org/schema/integration/feed http://www.springframework.org/schema/integration/feed/spring-integration-feed.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
-		http://www.springframework.org/schema/integration/zip
-		http://www.springframework.org/schema/integration/zip/spring-integration-zip.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<feed:inbound-channel-adapter auto-startup="${auto.startup:true}" id="news" url="http://spring.io/blog.atom">
 		<int:poller fixed-rate="5000"/>
 	</feed:inbound-channel-adapter>
 
-	<int:transformer
-		expression="payload.title + ' @ ' + payload.link + '#{systemProperties['line.separator']}'"
-		input-channel="news"
-		output-channel="file"/>
+	<file:inbound-channel-adapter directory="/Users/david/Downloads/test-doc1"
+		filename-regex="[a-z]+.txt" id="fileInbound">
+		<int:poller fixed-delay="5000" id="poller"/>
+	</file:inbound-channel-adapter>
+	<file:file-to-string-transformer input-channel="fileInbound" output-channel="file"/>
 
 	<file:outbound-channel-adapter charset="UTF-8"
 		directory="/tmp/si"
-		filename-generator-expression="'${feed.file.name:SpringBlog}'"
+		filename-generator-expression="'${fileInbound.file.name:SpringBlog}'"
 		id="file"
 		mode="APPEND"/>
-	<zip:zip-transformer auto-startup=""></zip:zip-transformer>
 </beans>
