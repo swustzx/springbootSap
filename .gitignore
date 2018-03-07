@@ -192,3 +192,5 @@ buildNumber.properties
 .mvn/
 mvnw
 mvnw.cmd
+/dev_jco_rfc.trc
+/.gitignore
