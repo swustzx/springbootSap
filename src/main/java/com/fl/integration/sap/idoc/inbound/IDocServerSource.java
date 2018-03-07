@@ -4,9 +4,13 @@ import com.fl.integration.sap.idoc.inbound.exec.ExecIDocHandler;
 import com.fl.integration.sap.idoc.listener.MessageListener;
 import com.fl.integration.sap.idoc.listener.MessageListenerContainer;
 import com.fl.integration.sap.idoc.listener.config.ContainerProperties;
+import com.fl.integration.sap.utils.FileDestinationsDataProviderUtils;
 import com.sap.conn.idoc.jco.JCoIDoc;
 import com.sap.conn.idoc.jco.JCoIDocHandlerFactory;
 import com.sap.conn.idoc.jco.JCoIDocServer;
+import com.sap.conn.jco.ext.DestinationDataProvider;
+import com.sap.conn.jco.ext.ServerDataProvider;
+import com.sap.conn.jco.rt.RuntimeEnvironment;
 import com.sap.conn.jco.server.JCoServer;
 import com.sap.conn.jco.server.JCoServerContext;
 import com.sap.conn.jco.server.JCoServerContextInfo;
@@ -167,15 +171,13 @@ public class IDocServerSource implements MessageListenerContainer {
 			return;
 		}
 		try {
-
+			ServerDataProvider serverDataProvider = new FileDestinationsDataProviderUtils();
+			RuntimeEnvironment.registerServerDataProvider(serverDataProvider);
+			DestinationDataProvider destinationDataProvider = new FileDestinationsDataProviderUtils();
+			RuntimeEnvironment.registerDestinationDataProvider(destinationDataProvider);
 			// JCo.setTrace(Trace.PATH3, "c:\\jcolog");
 			server = JCoIDoc.getServer("MYSERVER");
-//			String path= "src/main/resources";
-//			DestinationDataProvider destinationDataProvider=new FileDestinationsDataProviderUtils(path);
-//			//	Environment.registerDestinationDataProvider(destinationDataProvider);
-//			if (!RuntimeEnvironment.isDestinationDataProviderRegistered()) {
-//				RuntimeEnvironment.registerDestinationDataProvider(destinationDataProvider);
-//			}
+
 			if (LOGGER.isInfoEnabled()) {
 				LOGGER.info("MySncName:" + server.getMySncName()
 						+ "\tConnectionCount:" + server.getConnectionCount()

@@ -6,10 +6,12 @@ import com.sap.conn.jco.ext.ServerDataEventListener;
 import com.sap.conn.jco.ext.ServerDataProvider;
 import com.sap.conn.jco.util.FastStringBuffer;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Properties;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 /**
  * @author david
@@ -21,44 +23,49 @@ public class FileDestinationsDataProviderUtils implements DestinationDataProvide
 	private static String SERVER_CFG_FILES_SUFFIX = ".jcoServer";
 	private File destinationDirectory;
 
-	public FileDestinationsDataProviderUtils(String directory) throws FileNotFoundException {
+	public FileDestinationsDataProviderUtils() throws FileNotFoundException {
 		File destinationDirFile = null;
 		FastStringBuffer error = new FastStringBuffer(128);
-		destinationDirFile = new File(directory);
-		if (this.checkFile(destinationDirFile, error)) {
-			this.destinationDirectory = destinationDirFile;
-		} else {
-			throw new FileNotFoundException(error.toString());
-		}
+		//	destinationDirFile = new File(directory);
+//		if (this.checkFile(destinationDirFile, error)) {
+//			this.destinationDirectory = destinationDirFile;
+//		} else {
+////			throw new FileNotFoundException(error.toString());
+//		}
 	}
 
-	private boolean checkFile(File file, FastStringBuffer error) {
-		if (file.exists()) {
-			if (file.canRead()) {
-				return true;
-			}
-
-			if (error != null) {
-				error.append("File ");
-				error.append(file.getAbsolutePath());
-				error.append(" exists, but cannot be read. ");
-			}
-		} else if (error != null) {
-			error.append("File ");
-			error.append(file.getAbsolutePath());
-			error.append(" does not exist. ");
-		}
-
-		return false;
+	public void setServerDataEventListener(ServerDataEventListener eventListener) {
+		eventListener.updated("MYSERVER");
 	}
 
 	public Properties getDestinationProperties(String destinationName) {
 		return this.loadProperties(destinationName, DESTINATION_FILES_SUFFIX);
 	}
 
-	public boolean supportsEvents() {
+	private boolean checkFile(Resource resource, FastStringBuffer error) {
+		try {
+			if (resource.exists()) {
+				if (resource.isReadable()) {
+					return true;
+				}
 
-		return true;
+				if (error != null) {
+					error.append("File ");
+
+					error.append(resource.getFile().getAbsolutePath());
+
+					error.append(" exists, but cannot be read. ");
+				}
+			} else if (error != null) {
+				error.append("File ");
+				error.append(resource.getFile().getAbsolutePath());
+				error.append(" does not exist. ");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return false;
 	}
 
 	public void setDestinationDataEventListener(DestinationDataEventListener eventListener) {
@@ -69,21 +76,25 @@ public class FileDestinationsDataProviderUtils implements DestinationDataProvide
 		return this.loadProperties(serverName, SERVER_CFG_FILES_SUFFIX);
 	}
 
-	public void setServerDataEventListener(ServerDataEventListener eventListener) {
+	public boolean supportsEvents() {
+
+		return false;
 	}
 
 	private Properties loadProperties(String destinationName, String suffix) {
-		File destinationFile = new File(this.destinationDirectory, destinationName + suffix);
+
+		Resource resource = new ClassPathResource(destinationName + suffix);
+
 		FastStringBuffer buf = new FastStringBuffer(256);
-		if (!this.checkFile(destinationFile, buf)) {
+		if (!this.checkFile(resource, buf)) {
 			throw new RuntimeException(buf.toString());
 		} else {
-			FileInputStream fis = null;
+			InputStreamReader fis = null;
 			Properties properties = new Properties();
 
 			Properties var7;
 			try {
-				properties.load(fis = new FileInputStream(destinationFile));
+				properties.load(fis = new InputStreamReader(resource.getInputStream()));
 				var7 = properties;
 			} catch (IOException var16) {
 				throw new RuntimeException("Unable to load the destination properties", var16);
