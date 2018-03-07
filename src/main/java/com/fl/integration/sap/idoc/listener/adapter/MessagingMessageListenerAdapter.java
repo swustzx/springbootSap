@@ -21,8 +21,7 @@ public abstract class MessagingMessageListenerAdapter {
 	protected Object convertPayload(IDocDocument data) {
 		IDocXMLProcessor xmlProcessor =
 				JCoIDoc.getIDocFactory().getIDocXMLProcessor();
-		String string = xmlProcessor.render(data,
-				IDocXMLProcessor.RENDER_WITH_TABS_AND_CRLF);
+		String string = xmlProcessor.render(data);
 		return string;
 	}
 

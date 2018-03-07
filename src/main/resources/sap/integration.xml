@@ -23,8 +23,10 @@
 	</bean>
 	<bean class="com.fl.integration.sap.idoc.inbound.exec.ExecIDocHandler" id="execIDocHandler">
 	</bean>
-	<int:object-to-json-transformer id="obj2Json" input-channel="sapIdoc"
-		output-channel="file"></int:object-to-json-transformer>
+	<sapidoc:idoc-to-json-transformer id="idoc2json" input-channel="sapIdoc"
+		output-channel="file"></sapidoc:idoc-to-json-transformer>
+	<!--<int:object-to-json-transformer id="obj2Json" input-channel="sapIdoc"-->
+	<!--output-channel="file"></int:object-to-json-transformer>-->
 	<file:outbound-channel-adapter charset="UTF-8"
 		directory="/tmp/si"
 		filename-generator-expression="'${file.name:SpringBlog} '"
