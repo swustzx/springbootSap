@@ -2,9 +2,12 @@
 <beans xmlns:file="http://www.springframework.org/schema/integration/file"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:sapidoc="http://www.springframework.org/schema/integration/sap/idoc"
+	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
+	xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/sap/idoc http://www.springframework.org/schema/integration/sap/idoc/spring-integration-sap-idoc.xsd
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd http://www.springframework.org/schema/integration/sap/idoc http://www.springframework.org/schema/integration/sap/idoc/spring-integration-sap-idoc.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
@@ -24,12 +27,52 @@
 	<bean class="com.fl.integration.sap.idoc.inbound.exec.ExecIDocHandler" id="execIDocHandler">
 	</bean>
 	<sapidoc:idoc-to-json-transformer id="idoc2json" input-channel="sapIdoc"
-		output-channel="file"></sapidoc:idoc-to-json-transformer>
-	<!--<int:object-to-json-transformer id="obj2Json" input-channel="sapIdoc"-->
-	<!--output-channel="file"></int:object-to-json-transformer>-->
-	<file:outbound-channel-adapter charset="UTF-8"
-		directory="/tmp/si"
-		filename-generator-expression="'${file.name:SpringBlog} '"
-		id="file"
-		mode="APPEND"/>
+		output-channel="toRabbit"></sapidoc:idoc-to-json-transformer>
+	<!-- From Idoc To RabbitMQ -->
+
+	<int:channel id="toRabbit"/>
+
+	<int-amqp:outbound-channel-adapter
+		amqp-template="amqpTemplate" channel="toRabbit"
+		confirm-ack-channel="good"
+		confirm-correlation-expression="payload"
+		confirm-nack-channel="errors"
+		exchange-name-expression="payload.toLowerCase() == 'nack' ? 'badExchange' : 'si.test.exchange'"
+		return-channel="returns"
+		routing-key-expression="payload.toLowerCase() == 'fail' ? 'badKey' : 'si.test.binding'"/>
+
+	<!--Confirms are correlated with the entire payload; for rich objects, we might just use 'payload.invoiceId' -->
+
+	<int:transformer expression="payload + ' sent ok'" input-channel="good" output-channel="stdOut"/>
+
+	<int:transformer expression="payload + ' send failed (nack)'" input-channel="errors" output-channel="stdErr"/>
+
+	<int:transformer expression="payload + ' returned:' + headers['amqp_returnReplyText']" input-channel="returns"
+		output-channel="stdErr"/>
+
+	<int-stream:stdout-channel-adapter append-newline="true"
+		id="stdOut"/>
+
+	<int-stream:stderr-channel-adapter append-newline="true"
+		id="stdErr"/>
+
+	<int:logging-channel-adapter id="loggingChannel" level="INFO" log-full-message="true"
+		logger-name="tapInbound"/>
+	<!-- Infrastructure -->
+
+	<rabbit:connection-factory host="${rabbit.connection-factory.host}" id="connectionFactory"
+		password="${rabbit.connection-factory.password}"
+		publisher-confirms="true" publisher-returns="true" username="${rabbit.connection-factory.username}"/>
+
+	<rabbit:template connection-factory="connectionFactory" id="amqpTemplate" mandatory="true"/> <!-- for nacks -->
+
+	<rabbit:admin connection-factory="connectionFactory"/>
+
+	<rabbit:queue name="si.test.queue"/>
+
+	<rabbit:direct-exchange name="si.test.exchange">
+		<rabbit:bindings>
+			<rabbit:binding key="si.test.binding" queue="si.test.queue"/>
+		</rabbit:bindings>
+	</rabbit:direct-exchange>
 </beans>
