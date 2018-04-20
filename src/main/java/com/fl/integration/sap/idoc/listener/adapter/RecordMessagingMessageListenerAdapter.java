@@ -18,7 +18,6 @@ public class RecordMessagingMessageListenerAdapter<T> extends MessagingMessageLi
 
 	@Override
 	public Message<?> onMessage(IDocDocument data) {
-		IdocMessageHeaders idocMessageHeaders = createHeader(data);
 		return this.toMessagingMessage(data);
 	}
 
