@@ -1,0 +1,2 @@
+http\://www.springframework.org/schema/integration/sap/idoc=com.fl.integration.sap.idoc.config.xml\
+  .IdocNamespaceHandler

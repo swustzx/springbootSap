@@ -1,0 +1,4 @@
+# Tooling related information for the integration Sap Idoc namespace
+http\://www.springframework.org/schema/integration/sap/idoc@name=integration Sap Idoc Namespace
+http\://www.springframework.org/schema/integration/sap/idoc@prefix=int-sap-idoc
+http\://www.springframework.org/schema/integration/sap/idoc@icon=org/springframework/integration/config/xml/spring-integration-sap-idoc.gif

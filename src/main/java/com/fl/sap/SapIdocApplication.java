@@ -7,11 +7,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ImportResource;
 
 @SpringBootApplication
-@ImportResource("/hello/integration.xml")
-public class SapApplication {
+@ImportResource("/sap/integration.xml")
+public class SapIdocApplication {
 
 	public static void main(String[] args) throws IOException {
-		ConfigurableApplicationContext ctx = new SpringApplication(SapApplication.class).run(args);
+		ConfigurableApplicationContext ctx = new SpringApplication(SapIdocApplication.class).run(args);
 		System.out.println("Hit Enter to terminate");
 		System.in.read();
 		ctx.close();

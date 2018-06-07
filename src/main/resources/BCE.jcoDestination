@@ -1,0 +1,8 @@
+jco.client.lang=zh
+jco.destination.peak_limit=10
+jco.client.client=200
+jco.client.passwd=biz123
+jco.client.user=zhangxian
+jco.client.sysnr=00
+jco.destination.pool_capacity=3
+jco.client.ashost=192.168.101.31

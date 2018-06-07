@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	attributeFormDefault="unqualified"
+	elementFormDefault="qualified"
+	targetNamespace="http://www.springframework.org/schema/integration/sap/idoc"
+	xmlns="http://www.springframework.org/schema/integration/sap/idoc">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+			Defines the configuration elements for the Spring Integration
+			sap idoc Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="message-driven-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines the Message Producing Endpoint for the IdocMessageDrivenChannelAdapter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attributeGroup ref="integration:channelAdapterAttributes"/>
+			<xsd:attribute name="send-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Maximum amount of time in milliseconds to wait when sending a message to the channel
+						if such channel may block. For example, a Queue Channel can block until space is available
+						if its maximum capacity has been reached.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Message Channel to which error Messages should be sent.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="listener-container" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						An 'com.fl.integration.sap.idoc.inbound.IDocServerSource' bean reference.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="com.fl.integration.sap.idoc.inbound.IDocServerSource"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-converter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						An 'org.springframework.kafka.support.converter.MessageConverter' bean reference.
+						if mode = 'record' must be a 'RecordMessageConverter'; if mode = 'batch' must be
+						a `BatchMessageConverter`. Defaults to the default implementation for each mode.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.kafka.support.converter.MessageConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute default="record" name="mode">
+				<xsd:annotation>
+					<xsd:documentation>
+						'record' or 'batch' - default 'record' - one converted ConsumerRecord per message, when
+						'batch' then the payload is a collection of converted ConsumerRecords.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="listenerMode xsd:string"/>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="payload-type" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Set the payload type to convert to when using a type-aware message converter such as the
+						StringJsonMessageConverter. Fully qualified class name; defaults to 'java.lang.Object'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="idoc-to-json-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Creates a 'com.fl.integration.sap.idoc.inbound.transformer.IdocInboundXml2JsonTransformer'
+				that converts a idoc payload to a json.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="charset" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								<![CDATA[Set the charset name to use when converting a File
+						        payload to a String, e.g. charset="UTF-8". If not set, the default charset of this
+						        Java virtual machine is used.]]>
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					Identifies the underlying Spring bean definition (EventDrivenConsumer)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[The input channel of the transformer.]]>
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[The channel to which the transformer will send the transformed message.
+                    Optional, because incoming messages can specify a reply channel using the 'replyChannel'
+                    message header value themselves.]]>
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.messaging.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:simpleType name="listenerMode">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="record"/>
+			<xsd:enumeration value="batch"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+
+</xsd:schema>
