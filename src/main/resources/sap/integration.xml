@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:file="http://www.springframework.org/schema/integration/file"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-amqp="http://www.springframework.org/schema/integration/amqp"
+	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
+	xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xmlns:sapidoc="http://www.springframework.org/schema/integration/sap/idoc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/sftp
+    http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd
+	http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit.xsd http://www.springframework.org/schema/integration/amqp http://www.springframework.org/schema/integration/amqp/spring-integration-amqp.xsd http://www.springframework.org/schema/integration/sap/idoc http://www.springframework.org/schema/integration/sap/idoc/spring-integration-sap-idoc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+	<!--<bean class="com.fl.integration.sap.idoc.inbound.IDocServerSource" id="iDocServerSource">-->
+	<!--<constructor-arg>-->
+	<!--<bean class="com.fl.integration.sap.idoc.listener.config.ContainerProperties">-->
+	<!--</bean>-->
+	<!--</constructor-arg>-->
+	<!--<property name="jCoIDocHandlerFactory" ref="iDocHandlerFactory"></property>-->
+	<!--</bean>-->
+	<!--<sapidoc:message-driven-channel-adapter id="sapIdoc"-->
+	<!--listener-container="iDocServerSource"></sapidoc:message-driven-channel-adapter>-->
+	<!--<bean class="com.fl.integration.sap.idoc.inbound.IDocHandlerFactory" id="iDocHandlerFactory"-->
+	<!--lazy-init="false" scope="prototype">-->
+	<!--<property name="handler" ref="execIDocHandler"></property>-->
+	<!--</bean>-->
+	<!--<bean class="com.fl.integration.sap.idoc.inbound.exec.ExecIDocHandler" id="execIDocHandler">-->
+	<!--</bean>-->
+	<!-- From Idoc To RabbitMQ -->
+	<!--<sapidoc:idoc-to-json-transformer id="idoc2json" input-channel="sapIdoc"-->
+	<!--output-channel="toRabbit"></sapidoc:idoc-to-json-transformer>-->
+
+
+	<!--<int:channel id="toRabbit"/>-->
+
+	<!--<int-amqp:outbound-channel-adapter-->
+	<!--amqp-template="amqpTemplate" channel="toRabbit"-->
+	<!--confirm-ack-channel="good"-->
+	<!--confirm-correlation-expression="payload"-->
+	<!--confirm-nack-channel="errors"-->
+	<!--exchange-name-expression="payload.toLowerCase() == 'nack' ? 'badExchange' : 'si.test.exchange'"-->
+	<!--return-channel="returns"-->
+	<!--routing-key-expression="payload.toLowerCase() == 'fail' ? 'badKey' : 'si.test.binding'"/>-->
+
+	<!--&lt;!&ndash;Confirms are correlated with the entire payload; for rich objects, we might just use 'payload.invoiceId' &ndash;&gt;-->
+
+	<!--<int:transformer expression="payload + ' sent ok'" input-channel="good" output-channel="stdOut"/>-->
+
+	<!--<int:transformer expression="payload + ' send failed (nack)'" input-channel="errors" output-channel="stdErr"/>-->
+
+	<!--<int:transformer expression="payload + ' returned:' + headers['amqp_returnReplyText']" input-channel="returns"-->
+	<!--output-channel="stdErr"/>-->
+
+	<!--<int-stream:stdout-channel-adapter append-newline="true"-->
+	<!--id="stdOut"/>-->
+
+	<!--<int-stream:stderr-channel-adapter append-newline="true"-->
+	<!--id="stdErr"/>-->
+
+	<!--<int:logging-channel-adapter id="loggingChannel" level="INFO" log-full-message="true"-->
+	<!--logger-name="tapInbound"/>-->
+	<!--&lt;!&ndash; Infrastructure &ndash;&gt;-->
+
+	<!--<rabbit:connection-factory host="${rabbit.connection-factory.host}" id="connectionFactory"-->
+	<!--password="${rabbit.connection-factory.password}"-->
+	<!--publisher-confirms="true" publisher-returns="true" username="${rabbit.connection-factory.username}"/>-->
+
+	<!--<rabbit:template connection-factory="connectionFactory" id="amqpTemplate" mandatory="true"/> &lt;!&ndash; for nacks &ndash;&gt;-->
+
+	<!--<rabbit:admin connection-factory="connectionFactory"/>-->
+
+	<!--<rabbit:queue name="si.test.queue"/>-->
+
+	<!--<rabbit:direct-exchange name="si.test.exchange">-->
+	<!--<rabbit:bindings>-->
+	<!--<rabbit:binding key="si.test.binding" queue="si.test.queue"/>-->
+	<!--</rabbit:bindings>-->
+	<!--</rabbit:direct-exchange>-->
+	<!-- From Idoc To RabbitMQ end-->
+	<!-- From Idoc To SFTP -->
+	<!--<sapidoc:idoc-to-json-transformer id="idoc2json" input-channel="sapIdoc"-->
+	<!--output-channel="toSftpChannel"></sapidoc:idoc-to-json-transformer>-->
+	<!--<int:channel id="toSftpChannel"/>-->
+
+	<!--<bean id="sftpSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">-->
+	<!--<constructor-arg ref="defaultSftpSessionFactory" />-->
+	<!--</bean>-->
+	<!--<bean id="defaultSftpSessionFactory"-->
+	<!--class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">-->
+	<!--<property name="host" value="192.168.111.86"/>-->
+	<!--<property name="port" value="7732"/>-->
+	<!--<property name="user" value="oracle"/>-->
+	<!--<property name="password" value="jnCorA86"/>-->
+	<!--<property name="allowUnknownKeys" value="true"/>-->
+	<!--</bean>-->
+	<!--<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"-->
+	<!--session-factory="sftpSessionFactory"-->
+	<!--channel="toSftpChannel"-->
+	<!--charset="UTF-8"-->
+	<!--remote-directory="/home/oracle"-->
+	<!--remote-filename-generator-expression="headers[idocNumber]+ '.xlsx'"/>-->
+	<!-- From Idoc To SFTP  end -->
+	<!-- From File To SFTP  -->
+	<!--<file:inbound-channel-adapter id="filesIn" directory="/Users/david/Downloads/QQ-DOC/test/backup"-->
+	<!--channel="toSftpChannel" filter="compositeFilter" ignore-hidden="true">-->
+	<!--<int:poller id="poller" fixed-delay="5000"/>-->
+	<!--</file:inbound-channel-adapter>-->
+	<!--<bean id="compositeFilter"-->
+	<!--class="org.springframework.integration.file.filters.CompositeFileListFilter">-->
+	<!--<constructor-arg>-->
+	<!--<list>-->
+	<!--&lt;!&ndash;<bean class="org.springframework.integration.file.filters.IgnoreHiddenFileListFilter"/>&ndash;&gt;-->
+	<!--<bean class="org.springframework.integration.file.filters.FileSystemPersistentAcceptOnceFileListFilter">-->
+	<!--<constructor-arg name="store" ref="metadataStore"/>-->
+	<!--<constructor-arg name="prefix" value="^test.*$"/>-->
+	<!--<property name="flushOnUpdate" value="true"/>-->
+	<!--</bean>-->
+	<!--<bean class="org.springframework.integration.file.filters.RegexPatternFileListFilter">-->
+	<!--<constructor-arg value="test[0-9]+\.txt" />-->
+	<!--</bean>-->
+	<!--</list>-->
+	<!--</constructor-arg>-->
+	<!--</bean>-->
+
+	<!--<bean name="metadataStore" class="org.springframework.integration.metadata.PropertiesPersistingMetadataStore">-->
+	<!--<property name="baseDirectory" value="/Users/david/Downloads/QQ-DOC/test/metadataStore"/>-->
+	<!--</bean>-->
+	<!--<int:channel id="toSftpChannel"/>-->
+	<!--<bean id="sftpSessionFactory" class="org.springframework.integration.file.remote.session.CachingSessionFactory">-->
+	<!--<constructor-arg ref="defaultSftpSessionFactory" />-->
+	<!--</bean>-->
+	<!--<bean id="defaultSftpSessionFactory"-->
+	<!--class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory">-->
+	<!--<property name="host" value="192.168.111.86"/>-->
+	<!--<property name="port" value="7732"/>-->
+	<!--<property name="user" value="oracle"/>-->
+	<!--<property name="password" value="jnCorA86"/>-->
+	<!--<property name="allowUnknownKeys" value="true"/>-->
+	<!--</bean>-->
+	<!--<int-sftp:outbound-channel-adapter id="sftpOutboundAdapter"-->
+	<!--session-factory="sftpSessionFactory"-->
+	<!--channel="toSftpChannel"-->
+	<!--charset="UTF-8"-->
+	<!--remote-directory="/home/oracle/test1"/>-->
+	<!-- From File To SFTP  end -->
+
+	<!-- From SFTP To SFTP  -->
+	<bean class="org.springframework.integration.sftp.filters.SftpSystemMarkerFilePresentFileListFilter"
+		id="fileSystemMarkerFilePresentFileListFilter">
+		<constructor-arg name="filter" ref="sftpSimplePatternFileListFilter"/>
+	</bean>
+	<bean class="org.springframework.integration.sftp.filters.SftpRegexPatternFileListFilter"
+		id="sftpSimplePatternFileListFilter">
+		<constructor-arg value="test[0-9]+\.txt"/>
+	</bean>
+	<int-sftp:inbound-channel-adapter auto-create-local-directory="true"
+		channel="toSftpChannel"
+		delete-remote-files="false"
+		filter="fileSystemMarkerFilePresentFileListFilter"
+		id="sftpAdapterAutoCreate"
+		local-directory="/Users/david/Downloads/QQ-DOC/test/backup"
+		remote-directory="/home/oracle/test"
+		session-factory="sftpSessionFactory">
+		<int:poller fixed-rate="1000"/>
+	</int-sftp:inbound-channel-adapter>
+	<int:channel id="toSftpChannel"/>
+	<bean class="org.springframework.integration.file.remote.session.CachingSessionFactory" id="sftpSessionFactory">
+		<constructor-arg ref="defaultSftpSessionFactory"/>
+	</bean>
+	<bean class="org.springframework.integration.sftp.session.DefaultSftpSessionFactory"
+		id="defaultSftpSessionFactory">
+		<property name="host" value="192.168.111.86"/>
+		<property name="port" value="7732"/>
+		<property name="user" value="oracle"/>
+		<property name="password" value="jnCorA86"/>
+		<property name="allowUnknownKeys" value="true"/>
+	</bean>
+
+	<int-sftp:outbound-channel-adapter channel="toSftpChannel"
+		charset="UTF-8"
+		id="sftpOutboundAdapter"
+		mode="IGNORE"
+		remote-directory="/home/oracle/test1" session-factory="sftpSessionFactory"/>
+	<!-- From SFTP To SFTP  end -->
+
+</beans>
