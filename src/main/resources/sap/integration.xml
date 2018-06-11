@@ -75,4 +75,34 @@
 			<rabbit:binding key="si.test.binding" queue="si.test.queue"/>
 		</rabbit:bindings>
 	</rabbit:direct-exchange>
+
+	<bean class="com.fl.integration.sap.rfc.inbound.RfcClientSource" id="rfcClientSource">
+
+	</bean>
+
+	<!-- 声明消息转换器为SimpleMessageConverter -->
+	<bean class="org.springframework.amqp.support.converter.SimpleMessageConverter"
+		id="messageConverter">
+	</bean>
+	<!-- 监听生产者发送的消息开始 -->
+	<!-- 用于接收消息的处理类 -->
+	<bean class="com.fl.integration.sap.rfc.inbound.RfcMessageDrivenChannelAdapter"
+		id="rfcHandler">
+		<property name="rfcClientSource" ref="rfcClientSource"></property>
+	</bean>
+	<!-- 用于消息的监听的代理类MessageListenerAdapter -->
+	<bean class="org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter"
+		id="rfcAdapter">
+		<constructor-arg ref="rfcHandler"/>
+		<property name="defaultListenerMethod" value="handleMessage"></property>
+		<property name="messageConverter" ref="messageConverter"></property>
+	</bean>
+	<!-- 用于消息的监听的容器类SimpleMessageListenerContainer，对于queueName的值一定要与定义的Queue的值相同 -->
+	<bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer"
+		id="listenerContainer">
+		<property name="queueNames" value="si.test.queue"></property>
+		<property name="connectionFactory" ref="connectionFactory"></property>
+		<property name="messageListener" ref="rfcAdapter"></property>
+	</bean>
+	<!-- 监听生产者发送的消息结束 -->
 </beans>
