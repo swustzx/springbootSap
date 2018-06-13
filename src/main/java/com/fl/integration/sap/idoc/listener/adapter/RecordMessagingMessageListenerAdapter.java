@@ -25,6 +25,7 @@ public class RecordMessagingMessageListenerAdapter<T> extends MessagingMessageLi
 		IdocMessageHeaders idocMessageHeaders = new IdocMessageHeaders(this.generateMessageId, this.generateTimestamp);
 		Map<String, Object> rawHeaders = idocMessageHeaders.getRawHeaders();
 		rawHeaders.put("idocNumber", docDocument.getIDocNumber());
+		rawHeaders.put("messageType", docDocument.getMessageType());
 		return idocMessageHeaders;
 	}
 
