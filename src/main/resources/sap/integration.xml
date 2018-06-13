@@ -37,9 +37,9 @@
 		confirm-ack-channel="good"
 		confirm-correlation-expression="payload"
 		confirm-nack-channel="errors"
-		exchange-name-expression="payload.toLowerCase() == 'nack' ? 'badExchange' : 'si.test.exchange'"
+		exchange-name-expression="payload.toLowerCase() == 'nack' ? 'badExchange' : 'si.idoc.exchange'"
 		return-channel="returns"
-		routing-key-expression="payload.toLowerCase() == 'fail' ? 'badKey' : 'si.test.binding'"/>
+		routing-key-expression="payload.toLowerCase() == 'fail' ? 'badKey' : 'si.idoc.binding'"/>
 
 	<!--Confirms are correlated with the entire payload; for rich objects, we might just use 'payload.invoiceId' -->
 
@@ -68,11 +68,11 @@
 
 	<rabbit:admin connection-factory="connectionFactory"/>
 
-	<rabbit:queue name="si.test.queue"/>
+	<rabbit:queue name="si.idoc.queue"/>
 
-	<rabbit:direct-exchange name="si.test.exchange">
+	<rabbit:direct-exchange name="si.idoc.exchange">
 		<rabbit:bindings>
-			<rabbit:binding key="si.test.binding" queue="si.test.queue"/>
+			<rabbit:binding key="si.idoc.binding" queue="si.idoc.queue"/>
 		</rabbit:bindings>
 	</rabbit:direct-exchange>
 
@@ -89,6 +89,7 @@
 	<bean class="com.fl.integration.sap.rfc.inbound.RfcMessageDrivenChannelAdapter"
 		id="rfcHandler">
 		<property name="rfcClientSource" ref="rfcClientSource"></property>
+		<property name="rabbitTemplate" ref="amqpTemplate"></property>
 	</bean>
 	<!-- 用于消息的监听的代理类MessageListenerAdapter -->
 	<bean class="org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter"
@@ -100,9 +101,23 @@
 	<!-- 用于消息的监听的容器类SimpleMessageListenerContainer，对于queueName的值一定要与定义的Queue的值相同 -->
 	<bean class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer"
 		id="listenerContainer">
-		<property name="queueNames" value="si.test.queue"></property>
+		<property name="queueNames" value="si.idoc.queue"></property>
 		<property name="connectionFactory" ref="connectionFactory"></property>
 		<property name="messageListener" ref="rfcAdapter"></property>
 	</bean>
 	<!-- 监听生产者发送的消息结束 -->
+
+
+	<!--RFC发送到队列-->
+	<!--&lt;!&ndash; 声明Queue并设定Queue的名称 &ndash;&gt;-->
+	<bean class="org.springframework.amqp.core.Queue"
+		id="si.rfc.queue">
+		<constructor-arg value="si.rfc.queue"></constructor-arg>
+	</bean>
+
+	<rabbit:direct-exchange name="si.rfc.exchange">
+		<rabbit:bindings>
+			<rabbit:binding key="si.rfc.binding" queue="si.rfc.queue"/>
+		</rabbit:bindings>
+	</rabbit:direct-exchange>
 </beans>
