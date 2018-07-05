@@ -90,6 +90,7 @@
 		id="rfcHandler">
 		<property name="rfcClientSource" ref="rfcClientSource"></property>
 		<property name="rabbitTemplate" ref="amqpTemplate"></property>
+		<property name="redisTemplate" ref="redisTemplate"></property>
 	</bean>
 	<!-- 用于消息的监听的代理类MessageListenerAdapter -->
 	<bean class="org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter"
@@ -120,4 +121,87 @@
 			<rabbit:binding key="si.rfc.binding" queue="si.rfc.queue"/>
 		</rabbit:bindings>
 	</rabbit:direct-exchange>
+
+
+
+	<!--redis config-->
+	<bean id="clusterRedisNodes1"   class="org.springframework.data.redis.connection.RedisNode">
+<constructor-arg value="192.168.111.94"></constructor-arg>
+		<constructor-arg value="7001" type="int"></constructor-arg>
+
+
+	</bean>
+
+	<bean id="clusterRedisNodes2"   class="org.springframework.data.redis.connection.RedisNode">
+		<constructor-arg value="192.168.111.94"></constructor-arg>
+		<constructor-arg value="7002" type="int"></constructor-arg>
+
+
+	</bean>
+
+	<bean id="clusterRedisNodes3"   class="org.springframework.data.redis.connection.RedisNode">
+		<constructor-arg value="192.168.111.94"></constructor-arg>
+		<constructor-arg value="7003" type="int"></constructor-arg>
+
+
+	</bean>
+
+	<bean id="redisClusterConfiguration"   class="org.springframework.data.redis.connection.RedisClusterConfiguration">
+
+		<property name="clusterNodes">
+
+			<set>
+
+				<ref bean="clusterRedisNodes1"/>
+
+				<ref bean="clusterRedisNodes2"/>
+
+				<ref bean="clusterRedisNodes3"/>
+
+			</set>
+
+		</property>
+
+		<!--红色所示部分在从gitHub上获取的jar包中无对应setter方法，因此需要修改其对应的源码。
+
+            另外，如果不设置clusterTimeOut值，源码中默认为2S。当集群服务器与客户端不在同一服务器上时，容易报：Could not get a resource from the Cluster;
+
+                      如果不设置maxRedirects值，源码中默认为5。一般当此值设置过大时，容易报：Too many Cluster redirections -->
+
+		<!--<property name="clusterTimeOut" value="10000"></property>-->
+
+		<property name="maxRedirects"   value="5" />
+
+	</bean>
+
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxTotal" value="10"></property>
+		<property name="maxIdle" value="10"></property>
+		<property name="minIdle" value="2"></property>
+		<property name="maxWaitMillis" value="15000"></property>
+		<property name="minEvictableIdleTimeMillis" value="300000"></property>
+		<property name="numTestsPerEvictionRun" value="3"></property>
+		<property name="timeBetweenEvictionRunsMillis" value="60000"></property>
+		<property name="testOnBorrow" value="true"></property>
+		<property name="testOnReturn" value="true"></property>
+		<property name="testWhileIdle" value="true"></property>
+
+
+	<!--	<property name="maxActive" value="20"></property>-->
+	</bean>
+
+	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory" destroy-method="destroy"
+	>
+	  <constructor-arg ref="redisClusterConfiguration"></constructor-arg>
+		<constructor-arg ref="jedisPoolConfig"></constructor-arg>
+		<property name="timeout" value="1000"></property>
+		<property name="password" value="jnc123"></property>
+		<property name="database" value="1"></property>
+	</bean>
+
+	<!--<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">-->
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+
+		<property name="connectionFactory" ref="jedisConnectionFactory" />
+	</bean>
 </beans>

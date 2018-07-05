@@ -14,6 +14,9 @@ import com.sap.conn.jco.JCoTable;
 import java.io.StringWriter;
 import org.apache.log4j.Logger;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 /**
  * @author hasee
@@ -26,12 +29,21 @@ public class RfcMessageDrivenChannelAdapter {
 	private RfcClientSource rfcClientSource;
 	private static XmlMapper xmlMapper = new XmlMapper();
 	private RabbitTemplate rabbitTemplate;
+	private RedisTemplate<String,String> redisTemplate;
 	public RfcClientSource getRfcClientSource() {
 		return rfcClientSource;
 	}
 
 	public RabbitTemplate getRabbitTemplate() {
 		return rabbitTemplate;
+	}
+
+	public RedisTemplate<String, String> getRedisTemplate() {
+		return redisTemplate;
+	}
+
+	public void setRedisTemplate(RedisTemplate<String, String> redisTemplate) {
+		this.redisTemplate = redisTemplate;
 	}
 
 	public void setRabbitTemplate(RabbitTemplate rabbitTemplate) {
@@ -60,10 +72,10 @@ public class RfcMessageDrivenChannelAdapter {
 				while (jParser.nextToken() != JsonToken.END_OBJECT) {
 					String fieldname = jParser.getCurrentName();
 
-					if (logger.isDebugEnabled()) {
-						logger.info("fieldname" + fieldname);
-						logger.info("value" + jParser.getText());
-					}
+
+						logger.info("fieldname-->" + fieldname);
+						logger.info("value-->" + jParser.getText());
+
 
 					if ("KUNNR".equals(fieldname)) {
 						JCoFunction function = rfcClientSource.getDestination().getRepository()
@@ -71,6 +83,9 @@ public class RfcMessageDrivenChannelAdapter {
 						if (function == null) {
 							throw new RuntimeException("BAPI_CUSTOMER_GETDETAIL2 not found in SAP.");
 						}
+						jParser.nextToken();
+						logger.info("customer no-->"+jParser.getText());
+
 
 						function.getImportParameterList().setValue("CUSTOMERNO", jParser.getText());//客户名称
 						function.getImportParameterList().setValue("COMPANYCODE", "2000");//公司代码固定值
@@ -80,6 +95,9 @@ public class RfcMessageDrivenChannelAdapter {
 						function.execute(rfcClientSource.getDestination());
 						//返回参数-替换xml中的标签，与sap rfc参数名称一致，不使用参照结构名称
 						JCoStructure returnStructure = function.getExportParameterList().getStructure("RETURN");
+						logger.info("type:-->"+returnStructure.getString("TYPE"));
+
+
 						String returnString = returnStructure.toXML();
 
 						returnString = returnString.replace("BAPIRET1", "RETURN");
@@ -121,6 +139,20 @@ public class RfcMessageDrivenChannelAdapter {
 						if (logger.isDebugEnabled()) {
 							logger.info("send to mq: --> end");
 
+						}
+
+						if (returnStructure.getString("TYPE").equals("")||returnStructure.getString("TYPE").equals("S")){
+							//read rfc success
+							ValueOperations<String, String> valueOper = redisTemplate.opsForValue();
+							logger.info("check redis ustomer no-->  "+jParser.getText());
+							String test1 = valueOper.get("test1");
+							logger.info("check redis: test1-->  "+test1);
+							String getValue = valueOper.get(jParser.getText());
+							logger.info("check redis: -->  "+getValue);
+
+							if (getValue==null||("").equals(getValue)){
+								valueOper.set(jParser.getText(),resJson);
+							}
 						}
 
 						break;
