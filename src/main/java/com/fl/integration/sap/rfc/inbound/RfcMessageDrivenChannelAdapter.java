@@ -71,6 +71,9 @@ public class RfcMessageDrivenChannelAdapter {
 						if (function == null) {
 							throw new RuntimeException("BAPI_CUSTOMER_GETDETAIL2 not found in SAP.");
 						}
+						jParser.nextToken();
+						System.out.println(jParser.getText());
+						System.out.println(jParser.getValueAsString());
 
 						function.getImportParameterList().setValue("CUSTOMERNO", jParser.getText());//客户名称
 						function.getImportParameterList().setValue("COMPANYCODE", "2000");//公司代码固定值
@@ -115,6 +118,7 @@ public class RfcMessageDrivenChannelAdapter {
 							logger.info("send to mq: --> start");
 
 						}
+						//exchange--si.rfc.exchange,routing key--si.rfc.binding,object--发送的json
 						rabbitTemplate.convertAndSend("si.rfc.exchange", "si.rfc.binding",
 								resJson);
 

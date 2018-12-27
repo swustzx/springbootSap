@@ -104,6 +104,7 @@
 		<property name="queueNames" value="si.idoc.queue"></property>
 		<property name="connectionFactory" ref="connectionFactory"></property>
 		<property name="messageListener" ref="rfcAdapter"></property>
+		<property name="concurrentConsumers" value="3"></property>
 	</bean>
 	<!-- 监听生产者发送的消息结束 -->
 
